@@ -1,9 +1,10 @@
 def test_shift_tab_reverse_focus():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.core import Element
     from rc_tui.input import KeyEvent
     from rc_tui.reconciler import LayoutNode
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     b1 = LayoutNode(Element("button", {"text": "A"}))

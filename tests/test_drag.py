@@ -1,7 +1,8 @@
 def test_drag_starts_on_draggable_click():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -30,9 +31,10 @@ def test_drag_starts_on_draggable_click():
 
 
 def test_drag_not_started_on_non_draggable():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -58,9 +60,10 @@ def test_drag_not_started_on_non_draggable():
 
 
 def test_drag_becomes_active_on_move():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -90,9 +93,10 @@ def test_drag_becomes_active_on_move():
 
 
 def test_drag_small_move_ignored():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -123,9 +127,10 @@ def test_drag_small_move_ignored():
 
 
 def test_drag_release_ends_drag():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -157,9 +162,10 @@ def test_drag_release_ends_drag():
 
 def test_drag_calls_on_drag_start():
     called = []
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -190,9 +196,10 @@ def test_drag_calls_on_drag_start():
 
 def test_drag_calls_on_drag_move():
     called = []
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -224,9 +231,10 @@ def test_drag_calls_on_drag_move():
 
 def test_drag_calls_on_drop():
     drop_info = []
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -260,9 +268,10 @@ def test_drag_calls_on_drop():
 
 def test_drag_fires_on_drop_on_drop_target():
     drop_info = []
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import MouseEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     from rc_tui.core import Element
@@ -296,11 +305,12 @@ def test_drag_fires_on_drop_on_drop_target():
 
 
 def test_drag_indicator_drawn():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.core import Element
     from rc_tui.input import MouseEvent
     from rc_tui.reconciler import LayoutNode
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     box = LayoutNode(Element("box", {"draggable": True}))

@@ -269,8 +269,9 @@ def test_menu_click_selects():
 
 
 def test_open_context_menu():
-    from conftest import MockTerminal
     from rc_tui.app import App
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     called = []
@@ -285,9 +286,10 @@ def test_open_context_menu():
 
 
 def test_menu_esc_in_app():
-    from conftest import MockTerminal
     from rc_tui.app import App
     from rc_tui.input import KeyEvent
+
+    from tests.conftest import MockTerminal
 
     app = App(None, terminal=MockTerminal(80, 24))
     app.open_context_menu(10, 5, [{"label": "X"}])
