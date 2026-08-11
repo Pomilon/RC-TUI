@@ -496,6 +496,7 @@ def _make_viewer(path, theme):
         with open(path, "rb") as f:
             raw = f.read(MAX_PREVIEW_BYTES + 1)
         text = raw[:MAX_PREVIEW_BYTES].decode("utf-8", errors="replace")
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
         truncated = len(raw) > MAX_PREVIEW_BYTES
     except OSError:
         return Text("(unable to read file)", fg=theme["border"])

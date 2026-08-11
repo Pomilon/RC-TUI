@@ -76,10 +76,25 @@ def test_renderer_truecolor_mode_emits_38_2():
     assert "\x1b[38;2;" in "".join(out)
 
 
-def test_supports_truecolor_env(monkeypatch):
-    monkeypatch.delenv("COLORTERM", raising=False)
-    assert tui_core.supports_truecolor() is False
-    monkeypatch.setenv("COLORTERM", "truecolor")
-    assert tui_core.supports_truecolor() is True
-    monkeypatch.setenv("COLORTERM", "24bit")
-    assert tui_core.supports_truecolor() is True
+def test_supports_truecolor_env():
+    """COLORTERM must enable truecolor detection. Runs in a subprocess so the
+    C runtime's environment is guaranteed in sync (os.environ mutations do
+    not reliably reach std::getenv on all platforms)."""
+    import os
+    import subprocess
+    import sys
+
+    code = "from rc_tui import tui_core as t; print(t.supports_truecolor())"
+    env = dict(os.environ)
+    env.pop("COLORTERM", None)
+    env.pop("TERM", None)
+
+    def probe(**overrides):
+        e = dict(env)
+        e.update(overrides)
+        r = subprocess.run([sys.executable, "-c", code], env=e, capture_output=True, text=True)
+        return r.stdout.strip() == "True"
+
+    assert probe() is False
+    assert probe(COLORTERM="truecolor") is True
+    assert probe(COLORTERM="24bit") is True

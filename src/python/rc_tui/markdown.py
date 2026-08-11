@@ -4,7 +4,7 @@ from .core import Element
 
 
 def _parse_blocks(text):
-    lines = text.split("\n")
+    lines = [ln.rstrip("\r") for ln in text.split("\n")]
     blocks = []
     i = 0
     while i < len(lines):

@@ -80,14 +80,14 @@ def test_image_without_pillow_degrades_gracefully(monkeypatch):
     assert "Pillow" in row
 
 
-def test_image_renders_blocks():
+def test_image_renders_blocks(tmp_path):
     """Create a tiny test image, render it, verify half-block chars appear."""
     try:
         from PIL import Image as PILImage
     except ImportError:
         return
 
-    tmp_path = "/tmp/rctui_test_image.png"
+    tmp_path = str(tmp_path / "test_image.png")
     img = PILImage.new("RGB", (4, 4), color=(255, 0, 0))
     img.save(tmp_path)
 
@@ -107,7 +107,7 @@ def test_image_renders_blocks():
     os.remove(tmp_path)
 
 
-def test_image_measure():
+def test_image_measure(tmp_path):
     from rc_tui.reconciler import LayoutNode
 
     try:
@@ -115,7 +115,7 @@ def test_image_measure():
     except ImportError:
         return
 
-    tmp_path = "/tmp/rctui_test_measure.png"
+    tmp_path = str(tmp_path / "test_measure.png")
     img = PILImage.new("RGB", (100, 50), color=(0, 255, 0))
     img.save(tmp_path)
 
