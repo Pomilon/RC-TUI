@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest wcwidth
+          pip install pytest wcwidth Pillow pyperclip
 
       - name: Set up MSVC Developer Command Prompt
         if: runner.os == 'Windows'
@@ -74,6 +74,6 @@ jobs:
         with:
           name: wheel
           path: dist/*.whl
-      - run: pip install dist/*.whl pytest wcwidth
+      - run: pip install dist/*.whl pytest wcwidth Pillow pyperclip
       - run: python -c "import rc_tui; print(rc_tui.__version__)"
       - run: pytest tests/ -q

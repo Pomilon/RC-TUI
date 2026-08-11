@@ -78,6 +78,6 @@ skip = "cp36-* cp37-* cp38-* pp*"
 manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
 test-command = "pytest {project}/tests"
-test-requires = "pytest wcwidth"
+test-requires = "pytest wcwidth Pillow pyperclip"
 environment = { PYTHONPATH = "" }
 

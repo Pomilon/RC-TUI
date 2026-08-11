@@ -1940,7 +1940,12 @@ def _draw_image(node, canvas, style):
         canvas.draw_text(node.screen_x, node.screen_y, "[no path]", style)
         return
 
-    from PIL import Image as PILImage
+    try:
+        from PIL import Image as PILImage
+    except ImportError:
+        # Pillow is an optional extra; never crash the app when it is missing.
+        canvas.draw_text(node.screen_x, node.screen_y, "[requires Pillow]", style)
+        return
 
     cached_img = node.props.get("_img_data")
     if cached_img is None:

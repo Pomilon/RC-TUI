@@ -1,6 +1,8 @@
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "python"))
 
 from rc_tui import tui_core
@@ -49,12 +51,33 @@ def test_image_creates_element():
 
 
 def test_image_draw_does_not_crash_on_missing_file():
+    pytest.importorskip("PIL")
     b = tui_core.Buffer(20, 10)
     c = Canvas(b)
     node = _make_node(path="/nonexistent/test.png", width=20, height=10)
     _draw_image(node, c, tui_core.Style(255, 255, 255, 0, 0, 0))
     cell = b.get_cell(0, 0)
     assert cell is not None
+
+
+def test_image_without_pillow_degrades_gracefully(monkeypatch):
+    """The Image widget must not crash the app when Pillow is missing."""
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "PIL":
+            raise ImportError("no Pillow")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    b = tui_core.Buffer(20, 10)
+    c = Canvas(b)
+    node = _make_node(path="/nonexistent/test.png", width=20, height=10)
+    _draw_image(node, c, tui_core.Style(255, 255, 255, 0, 0, 0))
+    row = b.get_row(0)
+    assert "Pillow" in row
 
 
 def test_image_renders_blocks():

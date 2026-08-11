@@ -1,3 +1,17 @@
+import pytest
+from rc_tui.widgets import _selection_data, _undo_data
+
+
+@pytest.fixture(autouse=True)
+def _clean_undo_registry():
+    """The undo/selection registries are keyed by id(node); GC'd nodes from
+    earlier tests can reuse an id and leak stale stacks into a new node.
+    Clear them before every test so ordering never matters."""
+    _undo_data.clear()
+    _selection_data.clear()
+    yield
+
+
 def test_input_undo_text_insert():
     from rc_tui.core import Element
     from rc_tui.input import KeyEvent
