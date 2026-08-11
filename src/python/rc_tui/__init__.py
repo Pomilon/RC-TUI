@@ -1,7 +1,7 @@
-__version__ = "0.10.0"
-
 import os
 import sys
+
+from ._version import __version__
 
 # On Windows (Python 3.8+), we must explicitly add the package directory to the DLL search path
 if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
@@ -10,26 +10,117 @@ if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
         os.add_dll_directory(pkg_dir)
 
 from . import _rctui_core as tui_core
-from .core import Element, Component, StyleSheet
-from .dom import (
-    Box, Text, Button, Input, ScrollBox, Checkbox, RadioButton, 
-    Switch, Select, Dropdown, TabSelect, Textarea, Code, Diff, 
-    Markdown, ProgressBar, LineNumber, Divider, AsciiFont, 
-    Dialog, Modal, VirtualList, Table, Span, Strong, Em, B, I, U, Br, Toast, Timeline,
-    Slider, Accordion
-)
 from .app import App
-from .hooks import useState, useEffect, useMemo, useCallback, useRef, useWindowSize
+from .core import Component, Element, StyleSheet
+from .dom import (
+    Accordion,
+    AsciiFont,
+    B,
+    Box,
+    Br,
+    Button,
+    Checkbox,
+    Code,
+    Dialog,
+    Diff,
+    Divider,
+    Dropdown,
+    Em,
+    I,
+    Image,
+    Input,
+    LineNumber,
+    Markdown,
+    Menu,
+    Modal,
+    ProgressBar,
+    Provider,
+    RadioButton,
+    ScrollBox,
+    Select,
+    Slider,
+    Span,
+    Strong,
+    Switch,
+    Table,
+    TabSelect,
+    Text,
+    Textarea,
+    Timeline,
+    Toast,
+    Tree,
+    U,
+    VirtualList,
+)
 from .events import KeyEvent, MouseEvent
+from .hooks import (
+    create_context,
+    use_context,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useReducer,
+    useRef,
+    useState,
+    useWindowSize,
+)
 
 __all__ = [
-    '__version__',
-    'tui_core', 'Element', 'Component', 'App', 'StyleSheet',
-    'useState', 'useEffect', 'useMemo', 'useCallback', 'useRef', 'useWindowSize',
-    'KeyEvent', 'MouseEvent',
-    'Box', 'Text', 'Button', 'Input', 'ScrollBox', 'Checkbox', 'RadioButton', 
-    'Switch', 'Select', 'Dropdown', 'TabSelect', 'Textarea', 'Code', 'Diff', 
-    'Markdown', 'ProgressBar', 'LineNumber', 'Divider', 'AsciiFont',
-    'Dialog', 'Modal', 'VirtualList', 'Table', 'Span', 'Strong', 'Em', 'B', 'I', 'U', 'Br', 'Toast', 'Timeline',
-    'Slider', 'Accordion'
+    "__version__",
+    "tui_core",
+    "Element",
+    "Component",
+    "App",
+    "StyleSheet",
+    "useState",
+    "useEffect",
+    "useMemo",
+    "useCallback",
+    "useRef",
+    "useWindowSize",
+    "create_context",
+    "use_context",
+    "useContext",
+    "useReducer",
+    "Provider",
+    "KeyEvent",
+    "MouseEvent",
+    "Box",
+    "Text",
+    "Button",
+    "Input",
+    "ScrollBox",
+    "Checkbox",
+    "RadioButton",
+    "Switch",
+    "Select",
+    "Dropdown",
+    "TabSelect",
+    "Textarea",
+    "Code",
+    "Diff",
+    "Markdown",
+    "ProgressBar",
+    "LineNumber",
+    "Divider",
+    "AsciiFont",
+    "Dialog",
+    "Modal",
+    "VirtualList",
+    "Table",
+    "Span",
+    "Strong",
+    "Em",
+    "B",
+    "I",
+    "U",
+    "Br",
+    "Toast",
+    "Timeline",
+    "Slider",
+    "Accordion",
+    "Image",
+    "Menu",
+    "Tree",
 ]

@@ -28,7 +28,11 @@ find_package(pybind11 CONFIG QUIET)
 if(NOT pybind11_FOUND)
     # Fallback: try to find pybind11 from the Python environment
     if(NOT PYTHON_EXECUTABLE)
-        set(PYTHON_EXECUTABLE "python3")
+        if(Python3_EXECUTABLE)
+            set(PYTHON_EXECUTABLE "${Python3_EXECUTABLE}")
+        else()
+            set(PYTHON_EXECUTABLE "python3")
+        endif()
     endif()
     
     execute_process(
@@ -59,6 +63,8 @@ if(MSVC)
     # Standard static runtime linking
     set_property(TARGET _rctui_core PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
+
+install(TARGETS _rctui_core DESTINATION rc_tui)
 
 # Respect output directories set by setup.py
 if(CMAKE_LIBRARY_OUTPUT_DIRECTORY)

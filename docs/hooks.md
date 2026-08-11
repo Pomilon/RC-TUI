@@ -6,6 +6,7 @@
 
 1. **Only call hooks at the top level** — not inside loops, conditions, or nested functions. Call order must be identical across every render.
 2. **Only call hooks from components** — either `Component.render()` or a functional component body. Custom hooks (functions that call other hooks) are supported.
+3. **Context** — `use_context` must be called from a component rendered under the matching `Provider` (or accept the context default).
 
 ---
 
@@ -105,6 +106,55 @@ Use refs for:
 - Accessing element dimensions or position
 - Imperative operations on a node
 - Storing mutable values that don't trigger re-renders
+
+---
+
+## `useReducer`
+
+An alternative to `useState` for state that is updated through actions. Accepts a reducer `(state, action) -> state` and an initial value.
+
+```python
+def reducer(state, action):
+    if action["type"] == "increment":
+        return state + 1
+    if action["type"] == "decrement":
+        return state - 1
+    return state
+
+count, dispatch = useReducer(reducer, 0)
+# later:
+dispatch({"type": "increment"})
+```
+
+The dispatch function is stable across renders and triggers re-renders only when the reducer produces a new value.
+
+---
+
+## Context API
+
+Share values (themes, services, configuration) through the tree without prop drilling. Three pieces: `create_context`, `Provider`, `use_context`.
+
+```python
+from rc_tui import create_context, Provider, use_context
+
+Theme = create_context("dark")   # default value
+
+class ThemedText(Component):
+    def render(self):
+        theme = use_context(Theme)      # "light" inside the provider, "dark" outside
+        return Text(f"theme={theme}")
+
+class Root(Component):
+    def render(self):
+        return Provider(Theme, "light", children=[ThemedText()])
+```
+
+Rules:
+
+- `Provider(ctx, value, children=[...])` scopes `value` to its subtree. Nested providers for the same context override outer ones.
+- `use_context(ctx)` returns the nearest provider's value, or the context's default.
+- Providers can be re-rendered with new values; consumers pick up the new value on the next render.
+- `useContext` is provided as an alias of `use_context`.
 
 ---
 

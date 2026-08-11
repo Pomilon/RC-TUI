@@ -2,6 +2,17 @@
 
 All components share a set of common props for layout, styling, and behavior.
 
+## Provider
+
+`Provider(ctx, value, children=[...])` scopes a context value to its subtree. See the [Hooks API](hooks.md) for the full context API.
+
+```python
+from rc_tui import create_context, Provider
+
+Theme = create_context("dark")
+Provider(Theme, "light", children=[ThemedComponent()])
+```
+
 ## Common Props
 
 ### Layout
@@ -40,6 +51,12 @@ The default `align_items: stretch` matches CSS flexbox behavior — children wit
 - RGB tuple: `(255, 0, 0)`
 - Hex string: `"#ff0000"` or `"#f00"`
 - Named color: `"red"`, `"green"`, `"blue"`, `"cyan"`, `"magenta"`, `"yellow"`, `"white"`, `"black"`, `"gray"`, `"orange"`, `"purple"`, `"pink"`
+
+**Color depth.** Terminals that advertise `COLORTERM=truecolor`/`24bit` (or `TERM=*-direct`) receive 24-bit colors; everything else automatically falls back to the nearest 256-color index.
+
+### Uncontrolled state persistence
+
+Widgets that keep internal state persist it across re-renders when the user does not change the relevant props: `Slider` (`value`, `progress`), `TabSelect` and `Menu` (`selected_index`), and `Tree` (expansion/selection). Passing a new prop value explicitly (controlled usage) overrides the persisted state — matching React semantics.
 
 ### Behavior
 

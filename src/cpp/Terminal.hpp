@@ -17,7 +17,6 @@ class Terminal {
 public:
     Terminal();
     ~Terminal();
-
     void enableRawMode();
     void disableRawMode();
     
@@ -29,8 +28,12 @@ public:
     
     void clearScreen();
     void setCursorPosition(int x, int y);
+    void setCursorVisible(bool visible);
     void setForegroundColor(int r, int g, int b);
     void setBackgroundColor(int r, int g, int b);
+    void setForegroundColor256(int index);
+    void setBackgroundColor256(int index);
+    bool supportsTruecolor() const;
     void setBold(bool enable);
     void setItalic(bool enable);
     void setUnderline(bool enable);
@@ -55,5 +58,7 @@ private:
 #endif
     bool raw_mode_enabled = false;
 };
+
+bool terminalSupportsTruecolor();
 
 #endif

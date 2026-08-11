@@ -1,4 +1,81 @@
 #include "Buffer.hpp"
+#include <cstdint>
+
+static bool isWide(uint32_t cp) {
+    // Mirror wcwidth's wide list: the buffer must count cells exactly like
+    // the terminal does, or emoji-heavy rows drift a column and the diff
+    // leaves duplicated letters behind.
+    return (cp >= 0x1100 && cp <= 0x115F) ||
+           (cp >= 0x231A && cp <= 0x231B) ||
+           (cp >= 0x2329 && cp <= 0x232A) ||
+           (cp >= 0x23E9 && cp <= 0x23EC) ||
+           (cp == 0x23F0 || cp == 0x23F3) ||
+           (cp >= 0x25FD && cp <= 0x25FE) ||
+           (cp >= 0x2614 && cp <= 0x2615) ||
+           (cp >= 0x2648 && cp <= 0x2653) ||
+           (cp == 0x267F || cp == 0x2693 || cp == 0x26A1) ||
+           (cp >= 0x26AA && cp <= 0x26AB) ||
+           (cp >= 0x26BD && cp <= 0x26BE) ||
+           (cp >= 0x26C4 && cp <= 0x26C5) ||
+           (cp == 0x26CE || cp == 0x26D4 || cp == 0x26EA) ||
+           (cp >= 0x26F2 && cp <= 0x26F3) ||
+           (cp == 0x26F5 || cp == 0x26FA || cp == 0x26FD) ||
+           (cp == 0x2705 || cp == 0x270A || cp == 0x270B) ||
+           (cp == 0x2728 || cp == 0x274C || cp == 0x274E) ||
+           (cp >= 0x2753 && cp <= 0x2755) ||
+           (cp == 0x2757 || cp == 0x2795) ||
+           (cp >= 0x2796 && cp <= 0x2797) ||
+           (cp == 0x27B0 || cp == 0x27BF) ||
+           (cp >= 0x2B1B && cp <= 0x2B1C) ||
+           (cp == 0x2B50 || cp == 0x2B55) ||
+           (cp >= 0x2E80 && cp <= 0xA4CF) ||
+           (cp >= 0xAC00 && cp <= 0xD7A3) ||
+           (cp >= 0xE000 && cp <= 0xF8FF) ||
+           (cp >= 0xF900 && cp <= 0xFAFF) ||
+           (cp >= 0xFE10 && cp <= 0xFE19) ||
+           (cp >= 0xFE30 && cp <= 0xFE6B) ||
+           (cp >= 0xFF00 && cp <= 0xFF60) ||
+           (cp >= 0xFFE0 && cp <= 0xFFE6) ||
+           (cp == 0x1F004 || cp == 0x1F0CF || cp == 0x1F18E) ||
+           (cp >= 0x1F191 && cp <= 0x1F19A) ||
+           (cp >= 0x1F200 && cp <= 0x1F202) ||
+           (cp >= 0x1F210 && cp <= 0x1F23B) ||
+           (cp >= 0x1F240 && cp <= 0x1F248) ||
+           (cp >= 0x1F250 && cp <= 0x1F251) ||
+           (cp >= 0x1F260 && cp <= 0x1F265) ||
+           (cp >= 0x1F300 && cp <= 0x1F64F) ||
+           (cp >= 0x1F680 && cp <= 0x1F6FF) ||
+           (cp >= 0x1F900 && cp <= 0x1F9FF) ||
+           (cp >= 0x1FA70 && cp <= 0x1FAFF) ||
+           (cp >= 0x20000 && cp <= 0x2FFFD) ||
+           (cp >= 0x30000 && cp <= 0x3FFFD);
+}
+
+static bool isZeroWidth(uint32_t cp) {
+    return (cp >= 0x0300 && cp <= 0x036F) ||
+           (cp >= 0x200B && cp <= 0x200F) ||
+           (cp >= 0xFE00 && cp <= 0xFE0F);
+}
+
+int Buffer::utf8CharWidth(const std::string& s) {
+    if (s.empty()) return 0;
+    unsigned char c = (unsigned char)s[0];
+    uint32_t cp = 0;
+    if (c < 0x80) {
+        cp = c;
+    } else if (c >= 0xf0 && s.size() >= 4) {
+        cp = ((c & 0x07) << 18) | ((s[1] & 0x3f) << 12) | ((s[2] & 0x3f) << 6) | (s[3] & 0x3f);
+    } else if (c >= 0xe0 && s.size() >= 3) {
+        cp = ((c & 0x0f) << 12) | ((s[1] & 0x3f) << 6) | (s[2] & 0x3f);
+    } else if (c >= 0xc0 && s.size() >= 2) {
+        cp = ((c & 0x1f) << 6) | (s[1] & 0x3f);
+    } else {
+        return 1;
+    }
+    if (isZeroWidth(cp)) return 0;
+    if (isWide(cp)) return 2;
+    return 1;
+}
 
 Buffer::Buffer(int width, int height) : width(width), height(height) {
     cells.resize(width * height);
@@ -7,6 +84,9 @@ Buffer::Buffer(int width, int height) : width(width), height(height) {
 void Buffer::setCell(int x, int y, std::string c, Style s) {
     if (x >= 0 && x < width && y >= 0 && y < height) {
         cells[y * width + x] = {c, s};
+        if (utf8CharWidth(c) == 2 && x + 1 < width) {
+            cells[y * width + x + 1] = {"", s};
+        }
     }
 }
 
@@ -15,6 +95,29 @@ Cell Buffer::getCell(int x, int y) const {
         return cells[y * width + x];
     }
     return Cell();
+}
+
+std::string Buffer::getRow(int y) const {
+    if (y < 0 || y >= height) return "";
+    std::string row;
+    row.reserve(width);
+    for (int x = 0; x < width; ++x) {
+        const std::string& ch = cells[y * width + x].character;
+        row += ch.empty() ? " " : ch;
+    }
+    return row;
+}
+
+void Buffer::setRowBackground(int x1, int x2, int y, int r, int g, int b) {
+    if (y < 0 || y >= height) return;
+    x1 = std::max(x1, 0);
+    x2 = std::min(x2, width);
+    for (int x = x1; x < x2; ++x) {
+        Cell& cell = cells[y * width + x];
+        cell.style.bg_r = r;
+        cell.style.bg_g = g;
+        cell.style.bg_b = b;
+    }
 }
 
 void Buffer::clear() {
@@ -48,11 +151,12 @@ void Buffer::drawText(int x, int y, const std::string& text, Style s) {
         else if (c >= 0xc0) len = 2;
         
         if (i + len > text.length()) break;
+        if (cur_x >= width) break;
         
         std::string char_str = text.substr(i, len);
         setCell(cur_x, y, char_str, s);
         
-        cur_x++;
+        cur_x += utf8CharWidth(char_str);
         i += len;
     }
 }
@@ -89,7 +193,10 @@ void Buffer::drawRect(int x, int y, int w, int h, Style s, int type) {
 #include <sstream>
 
 void Buffer::drawMarkdown(int x, int y, int w, int h, const std::string& text, Style s, int cx, int cy, int cw, int ch) {
-    if (y < 0 || y >= height) return;
+    // A scrolled node can have a negative screen y while still partially
+    // visible; only bail when there is no overlap with the screen at all.
+    if (y >= height) return;
+    if (y + h <= 0) return;
     std::istringstream iss(text);
     std::string line;
     int curr_y = y;

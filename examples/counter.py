@@ -1,9 +1,10 @@
-from rc_tui import App, Component, Box, Text, Button, useState
+from rc_tui import App, Box, Button, Component, Text, useState
+
 
 class CounterApp(Component):
     def render(self):
         count, set_count = useState(0)
-        
+
         return Box(
             width="100%",
             height="100%",
@@ -13,28 +14,29 @@ class CounterApp(Component):
             gap=1,
             children=[
                 Text(
-                    "Simple Counter", 
-                    style={'bold': True, 'fg': 'cyan', 'text_transform': 'uppercase'}
+                    "Simple Counter",
+                    style={"bold": True, "fg": "cyan", "text_transform": "uppercase"},
                 ),
-                Text(f"Value: {count}", style={'fg': 'yellow' if count > 0 else 'white'}),
+                Text(f"Value: {count}", style={"fg": "yellow" if count > 0 else "white"}),
                 Box(
                     flex_direction="row",
                     gap=2,
                     children=[
                         Button(
-                            "Decrement", 
+                            "Decrement",
                             on_click=lambda _: set_count(count - 1),
-                            style={'hover_style': {'bg': 'red'}}
+                            style={"hover_style": {"bg": "red"}},
                         ),
                         Button(
-                            "Increment", 
+                            "Increment",
                             on_click=lambda _: set_count(count + 1),
-                            style={'hover_style': {'bg': 'green'}}
+                            style={"hover_style": {"bg": "green"}},
                         ),
-                    ]
-                )
-            ]
+                    ],
+                ),
+            ],
         )
+
 
 if __name__ == "__main__":
     App(CounterApp).run()

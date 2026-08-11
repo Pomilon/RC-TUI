@@ -2,13 +2,45 @@
 
 `rc-tui` dispatches keyboard and mouse events to the top-most window's component tree. Events propagate via props (`on_click`, `on_key_down`, etc.) set on individual elements.
 
+## Posting Events (Thread-Safe)
+
+`App.post_event(event)` enqueues an event from any thread; the event loop drains the queue every iteration and dispatches it normally. This is the safe way for background workers to drive the UI:
+
+```python
+import threading
+
+def worker(app):
+    app.post_event(KeyEvent("a"))
+
+app = App(None, on_start=lambda: threading.Thread(target=worker, args=(app,)).start())
+```
+
+`App.on_event` is a callback invoked for every dispatched event (posted and terminal), before global shortcuts:
+
+```python
+app = App(None, on_event=lambda ev: print("event:", ev))
+```
+
+## Lifecycle Callbacks
+
+`App` accepts `on_start`, `on_stop`, `on_resize`, and `on_event` callbacks (constructor kwargs or attributes):
+
+```python
+app = App(Root,
+          on_start=lambda: print("starting"),
+          on_stop=lambda: print("stopping"),
+          on_resize=lambda w, h: print(f"resized to {w}x{h}"))
+```
+
+`on_resize` fires when the terminal size changes (SIGWINCH-driven on POSIX, polled elsewhere).
+
 ## Focus Management
 
 Only one element can be focused at a time. Focusable types: `input`, `button`, `checkbox`, `radiobutton`, `switch`, `select`, `tabselect`, `textarea`.
 
 - **Tab** — Cycles focus through all focusable elements in the current window.
 - **Click** — Focuses the clicked element if it's focusable.
-- **Modal trapping (v0.3.0+)** — When a `Dialog` or `Modal` is open, Tab cycling is automatically restricted to elements within that modal. Focus cannot escape to the background window.
+- **Modal trapping** — When a `Dialog` or `Modal` is open, Tab cycling is automatically restricted to elements within that modal. Focus cannot escape to the background window.
 
 Toggle the inspector overlay with **F12** to see element types, positions, and sizes. Press **Ctrl+E** to open the error log viewer (shows render errors, handler errors, and crash logs).
 
@@ -23,7 +55,12 @@ class KeyEvent:
     ctrl: bool      # True if Ctrl is held
     shift: bool     # True if Shift is held
     alt: bool       # True if Alt is held
+    paste: str      # Pasted text when key == 'PASTE'
 ```
+
+### Bracketed paste
+
+Terminals that support bracketed paste (most modern terminals) deliver pasted text as a single `KeyEvent` with `key == "PASTE"` and the text in `event.paste`. `Input` and `Textarea` insert it automatically (single undo step). Disable per-app if your terminal misbehaves.
 
 ### Handling keys
 
@@ -49,6 +86,8 @@ The handler receives the `KeyEvent` and should return `True` if the event was co
 | `Button` | Space, Enter | Triggers `on_click` |
 | `Input` | Printable, Backspace | Edits text value |
 | `Input` | Enter | Triggers `on_submit` |
+| `Input` / `Textarea` | Ctrl+Left/Right | Word-level cursor movement |
+| `Input` / `Textarea` | Ctrl+A, Ctrl+Z/Y, Ctrl+C/V/X | Select all, undo/redo, clipboard |
 | `Textarea` | Printable, Backspace, Enter | Edits multi-line text |
 | `Checkbox` | Space, Enter | Toggles `checked` |
 | `RadioButton` | Space, Enter | Selects |
@@ -59,10 +98,13 @@ The handler receives the `KeyEvent` and should return `True` if the event was co
 ### Common key names
 
 - Movement: `UP`, `DOWN`, `LEFT`, `RIGHT`
+- Word movement: `CTRL_LEFT`, `CTRL_RIGHT`, `CTRL_HOME`, `CTRL_END`
 - Action: `ENTER`, `BACKSPACE`, `TAB`, `ESC`
 - Function: `F1`–`F12`
 - Navigation: `HOME`, `END`, `PAGE_UP`, `PAGE_DOWN`
 - Control: `CTRL_A`–`CTRL_Z` (Ctrl+C terminates the app)
+- Alt+key: delivered as the key with `alt=True` (e.g. Alt+Q → `KeyEvent("q", alt=True)`)
+- Paste: `PASTE` with the text in `event.paste`
 
 ## Mouse Events
 
@@ -85,7 +127,7 @@ class MouseEvent:
 | `MOVE` | Mouse moves | Updates `hovered_node`, applies `hover_style` |
 | `CLICK` | Button press | Focuses target, triggers per-widget click logic |
 | `SCROLL` | Wheel rotation | Scrolls nearest `ScrollBox` ancestor |
-| `RELEASE` | Button release | (Reserved for future drag support) |
+| `RELEASE` | Button release | Completes drag & drop (`on_drop` handlers) |
 
 ### Per-widget click behavior
 

@@ -1,8 +1,8 @@
 [project]
 name = "rc-tui"
-version = "0.9.0"
 description = "High-performance React-inspired TUI library for Python"
 readme = "README.md"
+dynamic = ["version"]
 requires-python = ">=3.9"
 license = {file = "LICENSE"}
 classifiers = [
@@ -12,6 +12,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 authors = [
     {name = "Pomilon", email = "pomilon@proton.me"}
@@ -19,23 +21,55 @@ authors = [
 dependencies = [
     "pybind11>=2.12.0",
     "pyfiglet>=0.8.post1",
+    "wcwidth>=0.2",
     "tree-sitter>=0.22.0,<0.24.0",
     "tree-sitter-python>=0.22.0,<0.24.0"
 ]
 
 [project.optional-dependencies]
+image = ["Pillow>=9.0"]
+clipboard = ["pyperclip>=1.8"]
 dev = [
     "pytest>=8.0.0",
-    "twine>=5.0.0"
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+    "build>=1.0",
+    "twine>=5.0.0",
 ]
 
 [build-system]
-requires = ["setuptools>=64", "wheel", "cmake>=3.20", "pybind11>=2.12.0", "ninja"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.12", "pybind11>=2.12.0", "cmake>=3.20", "ninja"]
+build-backend = "scikit_build_core.build"
 
-[tool.setuptools]
-package-dir = {"" = "src/python"}
-packages = ["rc_tui"]
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.15"
+sdist.inclusion-mode = "default"
+wheel.packages = ["src/python/rc_tui"]
+wheel.force-include = { "src/python/rc_tui/py.typed" = "rc_tui/py.typed" }
+sdist.include = ["src/cpp/**/*", "src/python/**/*.py", "src/python/**/*.pyi", "src/python/**/py.typed", "/CMakeLists.txt", "/README.md", "/LICENSE"]
+sdist.exclude = [".venv/", ".pytest_cache/", "__pycache__/", "*.so", "build/", "dist/"]
+
+[tool.scikit-build.metadata]
+version = {provider = "scikit_build_core.metadata.regex", input = "src/python/rc_tui/_version.py", regex = "__version__\\s*=\\s*\"(?P<value>[^\"]+)\""}
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = [
+    "SIM108",  # ternary preference conflicts with readability in places
+    "UP006",   # keep typing module imports readable on py39
+]
+
+[tool.ruff.format]
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
 
 [tool.cibuildwheel]
 before-build = "pip install pybind11 cmake ninja"
@@ -44,6 +78,6 @@ skip = "cp36-* cp37-* cp38-* pp*"
 manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
 test-command = "pytest {project}/tests"
-test-requires = "pytest"
+test-requires = "pytest wcwidth"
 environment = { PYTHONPATH = "" }
 

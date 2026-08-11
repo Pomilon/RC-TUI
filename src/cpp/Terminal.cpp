@@ -1,4 +1,5 @@
 #include "Terminal.hpp"
+#include <cstdlib>
 #include <iostream>
 
 #ifdef _WIN32
@@ -51,7 +52,7 @@ void Terminal::enableRawMode() {
 #else
     tcgetattr(STDIN_FILENO, &original_termios);
     struct termios raw = original_termios;
-    raw.c_lflag &= ~(ECHO | ICANON);
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 #endif
     raw_mode_enabled = true;
@@ -93,12 +94,45 @@ void Terminal::setCursorPosition(int x, int y) {
     write("\x1b[" + std::to_string(y) + ";" + std::to_string(x) + "H");
 }
 
+void Terminal::setCursorVisible(bool visible) {
+    write(visible ? "\x1b[?25h" : "\x1b[?25l");
+}
+
 void Terminal::setForegroundColor(int r, int g, int b) {
     write("\x1b[38;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" + std::to_string(b) + "m");
 }
 
 void Terminal::setBackgroundColor(int r, int g, int b) {
     write("\x1b[48;2;" + std::to_string(r) + ";" + std::to_string(g) + ";" + std::to_string(b) + "m");
+}
+
+void Terminal::setForegroundColor256(int index) {
+    write("\x1b[38;5;" + std::to_string(index) + "m");
+}
+
+void Terminal::setBackgroundColor256(int index) {
+    write("\x1b[48;5;" + std::to_string(index) + "m");
+}
+
+bool Terminal::supportsTruecolor() const {
+    return terminalSupportsTruecolor();
+}
+
+bool terminalSupportsTruecolor() {
+    const char* ct = std::getenv("COLORTERM");
+    if (ct) {
+        std::string val(ct);
+        if (val == "truecolor" || val == "24bit") {
+            return true;
+        }
+    }
+    const char* term = std::getenv("TERM");
+    if (term) {
+        if (std::string(term).find("direct") != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void Terminal::setBold(bool enable) {
