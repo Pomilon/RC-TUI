@@ -77,7 +77,7 @@ build-verbosity = 1
 skip = "cp36-* cp37-* cp38-* pp*"
 manylinux-x86_64-image = "manylinux_2_28"
 manylinux-aarch64-image = "manylinux_2_28"
-test-command = "pytest {project}/tests"
-test-requires = "pytest wcwidth Pillow pyperclip"
+test-command = "pytest {project}/tests --timeout=120"
+test-requires = "pytest wcwidth Pillow pyperclip pytest-timeout"
 environment = { PYTHONPATH = "" }
 

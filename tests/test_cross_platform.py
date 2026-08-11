@@ -16,7 +16,10 @@ sys.modules["msvcrt"] = mock_msvcrt
 class TestCrossPlatformInput(unittest.TestCase):
     def test_windows_arrow_keys(self):
         """Test that Windows scan codes are correctly mapped to ANSI sequences."""
-        with patch("rc_tui.input._get_platform", return_value="win32"):
+        with (
+            patch("rc_tui.input._get_platform", return_value="win32"),
+            patch("sys.stdin.isatty", return_value=True),
+        ):
             input_manager = InputManager()
             # Simulate pressing UP arrow on Windows: '\xe0' followed by 'H'
             mock_msvcrt.kbhit.side_effect = [True, True, False]
@@ -28,7 +31,10 @@ class TestCrossPlatformInput(unittest.TestCase):
 
     def test_windows_enter_key(self):
         """Test that Windows \r is mapped to \n."""
-        with patch("rc_tui.input._get_platform", return_value="win32"):
+        with (
+            patch("rc_tui.input._get_platform", return_value="win32"),
+            patch("sys.stdin.isatty", return_value=True),
+        ):
             input_manager = InputManager()
             mock_msvcrt.kbhit.side_effect = [True, False]
             mock_msvcrt.getwch.side_effect = ["\r"]

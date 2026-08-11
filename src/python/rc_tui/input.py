@@ -69,10 +69,12 @@ class InputManager:
 
     def get_events(self) -> list[Event]:
         try:
-            if self.platform == "win32":
+            if self.platform == "win32" and sys.stdin.isatty():
                 import msvcrt
 
-                # Windows implementation: combine msvcrt for keys and direct read for ANSI sequences
+                # Windows implementation: combine msvcrt for keys and direct read for
+                # ANSI sequences. Only used when stdin is a real console: kbhit()/getwch()
+                # misbehave (busy-loop or block) when stdin is a pipe, which CI runners use.
                 while msvcrt.kbhit():
                     char = msvcrt.getwch()
 
